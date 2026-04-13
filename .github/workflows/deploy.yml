@@ -104,35 +104,24 @@ jobs:
             cd /root/game || exit 1
             pwd
             ls -la
+            docker --version
+            docker compose version
 
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-            printf '%s\n' 'version: "3"' '' 'services:' '  backend:' '    image: 0n1x3/game-backend:latest' '    restart: always' '    ports:' '      - "3005:3005"' '    environment:' '      - MONGODB_URI=${{ secrets.MONGODB_URI }}' '      - BOT_TOKEN=${{ secrets.BOT_TOKEN }}' '' '  frontend:' '    image: 0n1x3/game-frontend:latest' '    restart: always' '    ports:' '      - "3000:3000"' > docker-compose.yml
+            printf '%s\n' 'services:' '  backend:' '    image: 0n1x3/game-backend:latest' '    restart: always' '    ports:' '      - "3005:3005"' '    environment:' '      - MONGODB_URI=${{ secrets.MONGODB_URI }}' '      - BOT_TOKEN=${{ secrets.BOT_TOKEN }}' '' '  frontend:' '    image: 0n1x3/game-frontend:latest' '    restart: always' '    ports:' '      - "3000:3000"' > docker-compose.yml
 
             cat docker-compose.yml
 
-            if command -v docker-compose >/dev/null 2>&1; then
-              docker-compose pull
-              docker-compose down || true
-              if ! docker-compose up -d --remove-orphans; then
-                echo "docker-compose up failed, printing diagnostics"
-                docker-compose ps || true
-                docker-compose logs --tail=200 backend frontend || true
-                docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" || true
-                exit 1
-              fi
-              docker-compose ps
-            else
-              docker compose pull
-              docker compose down || true
-              if ! docker compose up -d --remove-orphans; then
-                echo "docker compose up failed, printing diagnostics"
-                docker compose ps || true
-                docker compose logs --tail=200 backend frontend || true
-                docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" || true
-                exit 1
-              fi
-              docker compose ps
+            docker compose pull
+            docker compose down || true
+            if ! docker compose up -d --remove-orphans; then
+              echo "docker compose up failed, printing diagnostics"
+              docker compose ps || true
+              docker compose logs --tail=200 backend frontend || true
+              docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" || true
+              exit 1
             fi
+            docker compose ps
 
             docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"

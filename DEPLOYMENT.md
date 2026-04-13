@@ -150,7 +150,7 @@ pnpm build
 Текущий workflow разделен на два GitHub Actions job:
 
 - `build-and-push` - сборка пакетов и публикация Docker-образов
-- `deploy` - SSH-проверка, логин в Docker Hub на сервере, перезапуск контейнеров и вывод статуса
+- `deploy` - SSH-проверка, логин в Docker Hub на сервере, запуск через `docker compose` и вывод статуса
 
 Деплой выполняется по SSH:
 
@@ -166,7 +166,7 @@ pnpm build
 
 Перед основным деплоем workflow выполняет отдельный SSH-check шаг, чтобы ошибки ключа и доступа падали раньше сборки/перезапуска контейнеров.
 На сервере перед `docker pull` выполняется `docker login`, поэтому отдельная ручная авторизация не нужна.
-Во время деплоя workflow выполняет `down`, затем `up -d --remove-orphans`, после чего выводит `docker compose ps` и `docker ps`.
+Во время деплоя workflow выводит версии `docker` и `docker compose`, затем выполняет `pull`, `down`, `up -d --remove-orphans`, после чего печатает `docker compose ps` и `docker ps`.
 Если запуск контейнеров падает, workflow автоматически печатает диагностические логи `backend` и `frontend`, чтобы причину можно было увидеть прямо в GitHub Actions.
 
 ### Запуск из корня монорепозитория
