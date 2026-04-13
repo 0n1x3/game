@@ -156,6 +156,7 @@ pnpm build
 
 - пользователь: `root`
 - директория на сервере: `/root/game`
+- production домен: `https://game.limegp.ru`
 - обязательные GitHub Secrets:
   - `SERVER_HOST`
   - `SERVER_SSH_KEY`
@@ -163,11 +164,13 @@ pnpm build
   - `DOCKER_PASSWORD`
   - `MONGODB_URI`
   - `BOT_TOKEN`
+  - `TELEGRAM_BOT_USERNAME`
 
 Перед основным деплоем workflow выполняет отдельный SSH-check шаг, чтобы ошибки ключа и доступа падали раньше сборки/перезапуска контейнеров.
 На сервере перед `docker pull` выполняется `docker login`, поэтому отдельная ручная авторизация не нужна.
 Во время деплоя workflow выводит версии `docker` и `docker compose`, затем выполняет `pull`, `down`, `up -d --remove-orphans`, после чего печатает `docker compose ps` и `docker ps`.
 Если запуск контейнеров падает, workflow автоматически печатает диагностические логи `backend` и `frontend`, чтобы причину можно было увидеть прямо в GitHub Actions.
+Публичные URL `https://game.limegp.ru` и `https://game.limegp.ru/api` зашиваются в frontend-образ на этапе build, поэтому для домена не нужны отдельные secrets.
 
 ### Запуск из корня монорепозитория
 

@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+env:
+  APP_NAME: Game
+  APP_URL: https://game.limegp.ru
+  API_URL: https://game.limegp.ru/api
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -31,6 +36,12 @@ jobs:
         run: pnpm --filter ./packages/backend build
 
       - name: Build Frontend
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_APP_NAME: ${{ env.APP_NAME }}
+          NEXT_PUBLIC_APP_URL: ${{ env.APP_URL }}
+          NEXT_PUBLIC_API_URL: ${{ env.API_URL }}
+          NEXT_PUBLIC_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
         run: pnpm --filter ./packages/frontend build
 
       - name: Log in to Docker Hub
@@ -60,6 +71,11 @@ jobs:
           file: ./packages/frontend/Dockerfile
           push: true
           tags: 0n1x3/game-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_APP_NAME=${{ env.APP_NAME }}
+            NEXT_PUBLIC_APP_URL=${{ env.APP_URL }}
+            NEXT_PUBLIC_API_URL=${{ env.API_URL }}
+            NEXT_PUBLIC_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -109,7 +125,7 @@ jobs:
 
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-            printf '%s\n' 'services:' '  backend:' '    image: 0n1x3/game-backend:latest' '    restart: always' '    ports:' '      - "3005:3005"' '    environment:' '      - MONGODB_URI=${{ secrets.MONGODB_URI }}' '      - BOT_TOKEN=${{ secrets.BOT_TOKEN }}' '' '  frontend:' '    image: 0n1x3/game-frontend:latest' '    restart: always' '    ports:' '      - "3000:3000"' > docker-compose.yml
+            printf '%s\n' 'services:' '  backend:' '    image: 0n1x3/game-backend:latest' '    restart: always' '    ports:' '      - "3005:3005"' '    environment:' '      - APP_NAME=${{ env.APP_NAME }}' '      - MONGODB_URI=${{ secrets.MONGODB_URI }}' '      - BOT_TOKEN=${{ secrets.BOT_TOKEN }}' '      - FRONTEND_URL=${{ env.APP_URL }}' '      - CORS_ORIGINS=${{ env.APP_URL }}' '      - TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}' '' '  frontend:' '    image: 0n1x3/game-frontend:latest' '    restart: always' '    ports:' '      - "3000:3000"' '    environment:' '      - NODE_ENV=production' '      - NEXT_PUBLIC_APP_NAME=${{ env.APP_NAME }}' '      - NEXT_PUBLIC_APP_URL=${{ env.APP_URL }}' '      - NEXT_PUBLIC_API_URL=${{ env.API_URL }}' '      - NEXT_PUBLIC_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}' > docker-compose.yml
 
             cat docker-compose.yml
 

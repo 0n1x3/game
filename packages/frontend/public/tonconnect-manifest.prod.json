@@ -1,9 +1,9 @@
 {
-  "url": "https://game.example.com",
+  "url": "https://game.limegp.ru",
   "name": "Game",
-  "iconUrl": "https://game.example.com/ton.png",
-  "termsOfUseUrl": "https://game.example.com/terms",
-  "privacyPolicyUrl": "https://game.example.com/privacy",
+  "iconUrl": "https://game.limegp.ru/ton.png",
+  "termsOfUseUrl": "https://game.limegp.ru/terms",
+  "privacyPolicyUrl": "https://game.limegp.ru/privacy",
   "manifestVersion": 2,
   "permissions": ["tonAddress"]
 } 

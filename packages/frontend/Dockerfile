@@ -4,6 +4,17 @@ FROM node:18-alpine
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
+ARG NEXT_PUBLIC_APP_NAME=Game
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+ARG NEXT_PUBLIC_API_URL=http://localhost:3005
+ARG NEXT_PUBLIC_BOT_USERNAME=game_bot
+
+ENV NODE_ENV=production
+ENV NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME}
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_BOT_USERNAME=${NEXT_PUBLIC_BOT_USERNAME}
+
 # Копируем файлы package.json
 COPY package.json .
 COPY pnpm-lock.yaml .
