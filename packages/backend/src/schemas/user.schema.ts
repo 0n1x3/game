@@ -49,12 +49,12 @@ export class UserEntity implements BaseUser {
 export type UserDocument = UserEntity & Document;
 export const UserSchema = SchemaFactory.createForClass(UserEntity);
 
-// Р”РѕР±Р°РІР»СЏРµРј РІРёСЂС‚СѓР°Р»СЊРЅРѕРµ РїРѕР»Рµ id
+// Добавляем виртуальное поле id
 UserSchema.virtual('id').get(function() {
   return this._id.toHexString();
 });
 
-// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ РґРѕРєСѓРјРµРЅС‚Р° РІ User
+// Функция для преобразования документа в User
 export function toUser(doc: UserDocument): User {
   const obj = doc.toObject();
   return {

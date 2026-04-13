@@ -5,6 +5,8 @@ import type { UIWallet } from '@tonconnect/ui-react';
 import { useState, useEffect } from 'react';
 import { APP_URL } from '@/config';
 
+const twaReturnUrl = APP_URL as `${string}://${string}`;
+
 export function TonProvider({ children }: { children: React.ReactNode }) {
   const [manifestUrl, setManifestUrl] = useState<string>('');
 
@@ -67,7 +69,7 @@ export function TonProvider({ children }: { children: React.ReactNode }) {
     <TonConnectUIProvider 
       manifestUrl={manifestUrl}
       actionsConfiguration={{
-        twaReturnUrl: APP_URL,
+        twaReturnUrl,
         skipRedirectToWallet: 'never'
       }}
       walletsListConfiguration={{

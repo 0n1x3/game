@@ -1,4 +1,4 @@
-name: Deploy Test App
+name: Deploy Game
 
 on:
   push:
@@ -25,13 +25,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Shared Package
-        run: pnpm --filter shared build
+        run: pnpm --filter ./packages/shared build
 
       - name: Build Backend
-        run: pnpm --filter backend build
+        run: pnpm --filter ./packages/backend build
 
       - name: Build Frontend
-        run: pnpm --filter frontend build
+        run: pnpm --filter ./packages/frontend build
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -51,7 +51,7 @@ jobs:
           context: .
           file: ./packages/backend/Dockerfile
           push: true
-          tags: 0n1x3/test-app-backend:latest
+          tags: 0n1x3/game-backend:latest
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v3
@@ -59,7 +59,7 @@ jobs:
           context: .
           file: ./packages/frontend/Dockerfile
           push: true
-          tags: 0n1x3/test-app-frontend:latest
+          tags: 0n1x3/game-frontend:latest
 
       - name: SSH Deploy to Server
         uses: appleboy/ssh-action@v0.1.4
@@ -73,8 +73,8 @@ jobs:
           script: |
             whoami
             echo "Testing connection"
-            mkdir -p /home/rdp-user/test/test-app
-            cd /home/rdp-user/test/test-app || exit 1
+            mkdir -p /home/rdp-user/game
+            cd /home/rdp-user/game || exit 1
             pwd
             ls -la
             
@@ -83,7 +83,7 @@ jobs:
             echo '' >> docker-compose.yml
             echo 'services:' >> docker-compose.yml
             echo '  backend:' >> docker-compose.yml
-            echo '    image: 0n1x3/test-app-backend:latest' >> docker-compose.yml
+            echo '    image: 0n1x3/game-backend:latest' >> docker-compose.yml
             echo '    restart: always' >> docker-compose.yml
             echo '    ports:' >> docker-compose.yml
             echo '      - "3005:3005"' >> docker-compose.yml
@@ -92,7 +92,7 @@ jobs:
             echo '      - BOT_TOKEN=${{ secrets.BOT_TOKEN }}' >> docker-compose.yml
             echo '' >> docker-compose.yml
             echo '  frontend:' >> docker-compose.yml
-            echo '    image: 0n1x3/test-app-frontend:latest' >> docker-compose.yml
+            echo '    image: 0n1x3/game-frontend:latest' >> docker-compose.yml
             echo '    restart: always' >> docker-compose.yml
             echo '    ports:' >> docker-compose.yml
             echo '      - "3000:3000"' >> docker-compose.yml

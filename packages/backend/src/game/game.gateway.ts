@@ -1,4 +1,4 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+﻿import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { Game, User, WSEvents, verifyToken } from '@game/shared';
@@ -21,7 +21,7 @@ export class GameGateway {
   @WebSocketServer()
   server!: Server;
 
-  // РљР°СЂС‚Р° РґР»СЏ РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ Р°РєС‚РёРІРЅС‹С… РїРѕРґРєР»СЋС‡РµРЅРёР№ РїРѕ gameId
+  // Карта для отслеживания активных подключений по gameId
   private activeConnections: Map<string, Set<string>> = new Map();
 
   constructor(private gameService: GameService) {}
@@ -73,7 +73,7 @@ export class GameGateway {
 
   @SubscribeMessage('getGames')
   async handleGetGames() {
-    // Р—РґРµСЃСЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ Р»РѕРіРёРєР° РїРѕР»СѓС‡РµРЅРёСЏ СЃРїРёСЃРєР° РёРіСЂ
+    // Здесь должна быть логика получения списка игр
     return { games: [] };
   }
 
@@ -106,16 +106,16 @@ export class GameGateway {
   @SubscribeMessage('updateGame')
   async handleUpdateGame(@MessageBody() data: { gameId: string }) {
     try {
-      console.log(`Р—Р°РїСЂРѕСЃ РЅР° РѕР±РЅРѕРІР»РµРЅРёРµ РёРіСЂС‹ СЃ ID: ${data.gameId}`);
+      console.log(`Запрос на обновление игры с ID: ${data.gameId}`);
       
       const game = await this.gameService.getGameById(data.gameId);
       
       if (!game) {
-        console.error(`РРіСЂР° СЃ ID ${data.gameId} РЅРµ РЅР°Р№РґРµРЅР°`);
+        console.error(`Игра с ID ${data.gameId} не найдена`);
         return { success: false, error: 'Game not found' };
       }
       
-      // РћС‚РїСЂР°РІР»СЏРµРј РґР°РЅРЅС‹Рµ РёРіСЂС‹ РєР»РёРµРЅС‚Сѓ, РєРѕС‚РѕСЂС‹Р№ Р·Р°РїСЂРѕСЃРёР» РѕР±РЅРѕРІР»РµРЅРёРµ
+      // Отправляем данные игры клиенту, который запросил обновление
       return { 
         success: true, 
         game: {
@@ -139,16 +139,16 @@ export class GameGateway {
   @SubscribeMessage('getGamePlayers')
   async handleGetGamePlayers(@MessageBody() data: { gameId: string }) {
     try {
-      console.log(`РџРѕР»СѓС‡РµРЅ Р·Р°РїСЂРѕСЃ РЅР° РїРѕР»СѓС‡РµРЅРёРµ РёРіСЂРѕРєРѕРІ РґР»СЏ РёРіСЂС‹ СЃ ID: ${data.gameId}`);
+      console.log(`Получен запрос на получение игроков для игры с ID: ${data.gameId}`);
       
       const game = await this.gameService.getGameById(data.gameId);
       
       if (!game) {
-        console.error(`РРіСЂР° СЃ ID ${data.gameId} РЅРµ РЅР°Р№РґРµРЅР°`);
+        console.error(`Игра с ID ${data.gameId} не найдена`);
         return { success: false, error: 'Game not found' };
       }
       
-      // РџРѕР»СѓС‡Р°РµРј РґР°РЅРЅС‹Рµ РёРіСЂРѕРєРѕРІ
+      // Получаем данные игроков
       const players = [];
       for (const playerId of game.players) {
         const player = await this.gameService.validateUser(playerId.telegramId);
@@ -161,7 +161,7 @@ export class GameGateway {
         }
       }
       
-      // РћС‚РїСЂР°РІР»СЏРµРј РёРіСЂРѕРєР°Рј
+      // Отправляем игрокам
       this.server.to(`game_${data.gameId}`).emit('gamePlayers', {
         players
       });
@@ -178,69 +178,69 @@ export class GameGateway {
     @MessageBody() data: { gameId: string; value: number; telegramId: number }
   ) {
     try {
-      console.log('РџРѕР»СѓС‡РµРЅ Р·Р°РїСЂРѕСЃ РЅР° С…РѕРґ РІ РёРіСЂРµ:', data);
+      console.log('Получен запрос на ход в игре:', data);
       
-      // РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РІСЃРµС… РЅРµРѕР±С…РѕРґРёРјС‹С… РґР°РЅРЅС‹С…
+      // Проверка наличия всех необходимых данных
       if (!data || !data.gameId) {
-        console.error('РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ gameId РІ Р·Р°РїСЂРѕСЃРµ diceMove');
+        console.error('Отсутствует gameId в запросе diceMove');
         return { success: false, error: 'Missing gameId' };
       }
       
       if (data.value === undefined || data.value === null) {
-        console.error('РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ Р·РЅР°С‡РµРЅРёРµ Р±СЂРѕСЃРєР° РІ Р·Р°РїСЂРѕСЃРµ diceMove');
+        console.error('Отсутствует значение броска в запросе diceMove');
         return { success: false, error: 'Missing dice value' };
       }
       
       if (!data.telegramId && data.telegramId !== 0) {
-        console.error('РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ telegramId РІ Р·Р°РїСЂРѕСЃРµ diceMove:', data);
+        console.error('Отсутствует telegramId в запросе diceMove:', data);
         return { success: false, error: 'Missing telegramId' };
       }
       
       const game = await this.gameService.getDiceGameById(data.gameId);
       
       if (!game) {
-        console.error(`РРіСЂР° СЃ ID ${data.gameId} РЅРµ РЅР°Р№РґРµРЅР°`);
+        console.error(`Игра с ID ${data.gameId} не найдена`);
         return { success: false, error: 'Game not found' };
       }
       
-      // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РёРіСЂР° РІ СЃС‚Р°С‚СѓСЃРµ 'playing'
+      // Проверяем, что игра в статусе 'playing'
       if (game.status !== 'playing') {
-        console.error(`РџРѕРїС‹С‚РєР° С…РѕРґР° РІ РёРіСЂРµ, РєРѕС‚РѕСЂР°СЏ РЅРµ РІ СЃС‚Р°С‚СѓСЃРµ playing: ${game.status}`);
+        console.error(`Попытка хода в игре, которая не в статусе playing: ${game.status}`);
         return { success: false, error: 'Game is not in playing status' };
       }
       
-      // РџСЂРµРѕР±СЂР°Р·СѓРµРј telegramId РІ СЃС‚СЂРѕРєСѓ РґР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕРіРѕ СЃСЂР°РІРЅРµРЅРёСЏ
+      // Преобразуем telegramId в строку для корректного сравнения
       const playerTelegramId = String(data.telegramId);
       
-      // РџСЂРѕРІРµСЂСЏРµРј, С‡РµР№ С…РѕРґ
+      // Проверяем, чей ход
       if (game.currentPlayer && game.currentPlayer !== playerTelegramId) {
-        console.error(`РќРµ РІР°С€ С…РѕРґ: С‚РµРєСѓС‰РёР№ РёРіСЂРѕРє ${game.currentPlayer}, РІС‹ РїС‹С‚Р°РµС‚РµСЃСЊ С…РѕРґРёС‚СЊ РєР°Рє ${playerTelegramId}`);
+        console.error(`Не ваш ход: текущий игрок ${game.currentPlayer}, вы пытаетесь ходить как ${playerTelegramId}`);
         return { success: false, error: 'Not your turn' };
       }
       
-      console.log(`РРіСЂРѕРє ${playerTelegramId} РІС‹РїРѕР»РЅСЏРµС‚ С…РѕРґ СЃРѕ Р·РЅР°С‡РµРЅРёРµРј ${data.value}`);
+      console.log(`Игрок ${playerTelegramId} выполняет ход со значением ${data.value}`);
       
       try {
-        // РћР±РЅРѕРІР»СЏРµРј СЃРѕСЃС‚РѕСЏРЅРёРµ РёРіСЂС‹
+        // Обновляем состояние игры
         const updatedGame = await this.gameService.recordDiceMove(
           data.gameId,
           data.telegramId,
           data.value
         );
         
-        // РџРѕР»СѓС‡Р°РµРј РёРЅРґРµРєСЃ СЃР»РµРґСѓСЋС‰РµРіРѕ РёРіСЂРѕРєР°
+        // Получаем индекс следующего игрока
         const nextPlayerIndex = updatedGame.players.findIndex(
           p => String(p.telegramId) === String(updatedGame.currentPlayer)
         );
         
-        // РРјСЏ СЃР»РµРґСѓСЋС‰РµРіРѕ РёРіСЂРѕРєР°
+        // Имя следующего игрока
         const nextPlayerName = nextPlayerIndex >= 0 ? 
           await this.gameService.getUsernameById(String(updatedGame.currentPlayer)) : 
           'unknown';
         
-        console.log(`РҐРѕРґ РїРµСЂРµС…РѕРґРёС‚ Рє РёРіСЂРѕРєСѓ ${updatedGame.currentPlayer} (${nextPlayerName})`);
+        console.log(`Ход переходит к игроку ${updatedGame.currentPlayer} (${nextPlayerName})`);
         
-        // РЎРѕРѕР±С‰Р°РµРј РІСЃРµРј РїРѕРґРєР»СЋС‡РµРЅРЅС‹Рј РєР»РёРµРЅС‚Р°Рј Рѕ С…РѕРґРµ
+        // Сообщаем всем подключенным клиентам о ходе
         this.server.to(`game_${data.gameId}`).emit('diceMove', {
           gameId: data.gameId,
           telegramId: data.telegramId,
@@ -252,11 +252,11 @@ export class GameGateway {
         
         return { success: true };
       } catch (moveError) {
-        console.error('РћС€РёР±РєР° РїСЂРё РѕР±СЂР°Р±РѕС‚РєРµ С…РѕРґР°:', moveError);
+        console.error('Ошибка при обработке хода:', moveError);
         return { success: false, error: moveError.message };
       }
     } catch (error) {
-      console.error('РћР±С‰Р°СЏ РѕС€РёР±РєР° РїСЂРё РѕР±СЂР°Р±РѕС‚РєРµ СЃРѕР±С‹С‚РёСЏ diceMove:', error);
+      console.error('Общая ошибка при обработке события diceMove:', error);
       return { success: false, error: error.message };
     }
   }
@@ -266,12 +266,12 @@ export class GameGateway {
     @MessageBody() data: { gameId: string }
   ) {
     try {
-      // РЎРЅР°С‡Р°Р»Р° РїСЂРѕРІРµСЂСЏРµРј С‚РµРєСѓС‰РёР№ СЃС‚Р°С‚СѓСЃ РёРіСЂС‹
+      // Сначала проверяем текущий статус игры
       const existingGame = await this.gameService.getGameById(data.gameId);
       
-      // Р•СЃР»Рё РёРіСЂР° СѓР¶Рµ РІ РїСЂРѕС†РµСЃСЃРµ РёР»Рё Р·Р°РІРµСЂС€РµРЅР°, РЅРµ Р·Р°РїСѓСЃРєР°РµРј РµС‘ СЃРЅРѕРІР°
+      // Если игра уже в процессе или завершена, не запускаем её снова
       if (existingGame && existingGame.status === 'playing') {
-        console.log(`РРіСЂР° ${data.gameId} СѓР¶Рµ Р·Р°РїСѓС‰РµРЅР°, РїСЂРѕРїСѓСЃРєР°РµРј Р·Р°РїСЂРѕСЃ РЅР° Р·Р°РїСѓСЃРє`);
+        console.log(`Игра ${data.gameId} уже запущена, пропускаем запрос на запуск`);
         return { 
           success: true, 
           message: 'Game is already started', 
@@ -280,17 +280,17 @@ export class GameGateway {
       }
       
       if (existingGame && existingGame.status === 'finished') {
-        console.log(`РРіСЂР° ${data.gameId} СѓР¶Рµ Р·Р°РІРµСЂС€РµРЅР°, РїСЂРѕРїСѓСЃРєР°РµРј Р·Р°РїСЂРѕСЃ РЅР° Р·Р°РїСѓСЃРє`);
+        console.log(`Игра ${data.gameId} уже завершена, пропускаем запрос на запуск`);
         return { 
           success: false, 
           error: 'Game is already finished'
         };
       }
       
-      // Р•СЃР»Рё РёРіСЂР° РІ СЃС‚Р°С‚СѓСЃРµ 'waiting' РёР»Рё СЃС‚Р°С‚СѓСЃ РЅРµ РѕРїСЂРµРґРµР»РµРЅ, Р·Р°РїСѓСЃРєР°РµРј РёРіСЂСѓ
+      // Если игра в статусе 'waiting' или статус не определен, запускаем игру
       const game = await this.gameService.startDiceGame(data.gameId);
       
-      console.log('РРіСЂР° СѓСЃРїРµС€РЅРѕ Р·Р°РїСѓС‰РµРЅР°, РѕС‚РїСЂР°РІР»СЏРµРј СЃРѕР±С‹С‚РёРµ diceGameStarted:', {
+      console.log('Игра успешно запущена, отправляем событие diceGameStarted:', {
         gameId: data.gameId,
         firstPlayer: game.currentPlayer,
         players: game.players.map(p => ({
@@ -299,7 +299,7 @@ export class GameGateway {
         }))
       });
       
-      // РСЃРїРѕР»СЊР·СѓРµРј РѕРїРµСЂР°С‚РѕСЂ РѕРїС†РёРѕРЅР°Р»СЊРЅРѕРіРѕ РґРѕСЃС‚СѓРїР° РґР»СЏ РїСЂРµРґРѕС‚РІСЂР°С‰РµРЅРёСЏ РѕС€РёР±РѕРє
+      // Используем оператор опционального доступа для предотвращения ошибок
       this.server.to(`game_${data.gameId}`).emit('diceGameStarted', {
         gameId: data.gameId,
         status: 'playing',
@@ -326,33 +326,33 @@ export class GameGateway {
   ) {
     try {
       const { gameId } = data;
-      console.log(`РљР»РёРµРЅС‚ ${client.id} РїС‹С‚Р°РµС‚СЃСЏ РїСЂРёСЃРѕРµРґРёРЅРёС‚СЊСЃСЏ Рє РєРѕРјРЅР°С‚Рµ РёРіСЂС‹ ${gameId}`);
+      console.log(`Клиент ${client.id} пытается присоединиться к комнате игры ${gameId}`);
       
-      // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+      // Проверяем, есть ли данные пользователя
       const userId = data.telegramId || (client.data?.user?.telegramId);
       
       if (!userId) {
-        console.warn('РќРµС‚ РґР°РЅРЅС‹С… РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ СЃРѕРєРµС‚Рµ РёР»Рё Р·Р°РїСЂРѕСЃРµ:', client.id);
-        return { success: false, error: 'РќРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ' };
+        console.warn('Нет данных пользователя в сокете или запросе:', client.id);
+        return { success: false, error: 'Не авторизован' };
       }
       
-      // РџСЂРѕР±СѓРµРј РїРѕР»СѓС‡РёС‚СЊ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+      // Пробуем получить имя пользователя
       const username = data.username || client.data?.user?.username || 'unknown';
       
-      console.log(`РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ ${username} (${userId}) РїСЂРёСЃРѕРµРґРёРЅСЏРµС‚СЃСЏ Рє РєРѕРјРЅР°С‚Рµ ${gameId}`);
+      console.log(`Пользователь ${username} (${userId}) присоединяется к комнате ${gameId}`);
       
-      // РџСЂРѕРІРµСЂСЏРµРј, СЃСѓС‰РµСЃС‚РІСѓРµС‚ Р»Рё РёРіСЂР°
+      // Проверяем, существует ли игра
       const game = await this.gameService.getGameById(gameId);
       if (!game) {
-        console.error(`РРіСЂР° СЃ ID ${gameId} РЅРµ РЅР°Р№РґРµРЅР°`);
-        return { success: false, error: 'РРіСЂР° РЅРµ РЅР°Р№РґРµРЅР°' };
+        console.error(`Игра с ID ${gameId} не найдена`);
+        return { success: false, error: 'Игра не найдена' };
       }
       
-      // РџСЂРёСЃРѕРµРґРёРЅСЏРµРј РєР»РёРµРЅС‚Р° Рє РєРѕРјРЅР°С‚Рµ РёРіСЂС‹
+      // Присоединяем клиента к комнате игры
       await client.join(`game_${gameId}`);
-      console.log(`РљР»РёРµРЅС‚ ${client.id} СѓСЃРїРµС€РЅРѕ РїСЂРёСЃРѕРµРґРёРЅРёР»СЃСЏ Рє РєРѕРјРЅР°С‚Рµ game_${gameId}`);
+      console.log(`Клиент ${client.id} успешно присоединился к комнате game_${gameId}`);
       
-      // РћР±РЅРѕРІР»СЏРµРј РґР°РЅРЅС‹Рµ РєР»РёРµРЅС‚Р°
+      // Обновляем данные клиента
       client.data = {
         ...client.data,
         user: {
@@ -362,7 +362,7 @@ export class GameGateway {
         gameId
       };
       
-      // РћС‚РїСЂР°РІР»СЏРµРј С‚РµРєСѓС‰РµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ РёРіСЂС‹ 
+      // Отправляем текущее состояние игры 
       this.server.to(`game_${gameId}`).emit('gameStatus', {
         gameId,
         status: game.status,
@@ -375,114 +375,114 @@ export class GameGateway {
         }))
       });
       
-      // РџСЂРѕРІРµСЂСЏРµРј, СЏРІР»СЏРµС‚СЃСЏ Р»Рё РєР»РёРµРЅС‚ РёРіСЂРѕРєРѕРј РІ СЌС‚РѕР№ РёРіСЂРµ
+      // Проверяем, является ли клиент игроком в этой игре
       const isPlayerInGame = game.players.some(p => String(p.telegramId) === String(userId));
       
       if (!isPlayerInGame && game.status === 'waiting') {
-        console.log(`РРіСЂРѕРє ${userId} РЅРµ РїСЂРёСЃРѕРµРґРёРЅРµРЅ Рє РёРіСЂРµ, РїСЂРѕР±СѓРµРј РїСЂРёСЃРѕРµРґРёРЅРёС‚СЊ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё`);
+        console.log(`Игрок ${userId} не присоединен к игре, пробуем присоединить автоматически`);
         
         try {
-          // РќР°С…РѕРґРёРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+          // Находим пользователя
           const user = await this.gameService.validateUser(Number(userId));
           if (user) {
-            // РџСЂРёСЃРѕРµРґРёРЅСЏРµРј Рє РёРіСЂРµ
+            // Присоединяем к игре
             await this.gameService.joinGame(gameId, user);
-            console.log(`РРіСЂРѕРє ${username} (${userId}) СѓСЃРїРµС€РЅРѕ РїСЂРёСЃРѕРµРґРёРЅРµРЅ Рє РёРіСЂРµ ${gameId}`);
+            console.log(`Игрок ${username} (${userId}) успешно присоединен к игре ${gameId}`);
           }
         } catch (joinError) {
-          console.error(`РћС€РёР±РєР° РїСЂРё РїСЂРёСЃРѕРµРґРёРЅРµРЅРёРё РёРіСЂРѕРєР° ${userId} Рє РёРіСЂРµ:`, joinError);
+          console.error(`Ошибка при присоединении игрока ${userId} к игре:`, joinError);
         }
       }
       
-      // РћР±РЅРѕРІР»СЏРµРј СЃС‚Р°С‚СѓСЃ РїРѕРґРєР»СЋС‡РµРЅРёСЏ РґР»СЏ РІСЃРµС… РєР»РёРµРЅС‚РѕРІ РІ РєРѕРјРЅР°С‚Рµ
+      // Обновляем статус подключения для всех клиентов в комнате
       this.updateConnectionStatus(gameId);
       
       return { success: true };
     } catch (error) {
-      console.error('РћС€РёР±РєР° РїСЂРё РїСЂРёСЃРѕРµРґРёРЅРµРЅРёРё Рє РєРѕРјРЅР°С‚Рµ РёРіСЂС‹:', error);
+      console.error('Ошибка при присоединении к комнате игры:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // РћР±СЂР°Р±РѕС‚С‡РёРє РїРѕРґРєР»СЋС‡РµРЅРёСЏ РєР»РёРµРЅС‚Р°
+  // Обработчик подключения клиента
   handleConnection(client: Socket) {
     try {
-      console.log(`РќРѕРІРѕРµ WebSocket СЃРѕРµРґРёРЅРµРЅРёРµ: ${client.id}`);
+      console.log(`Новое WebSocket соединение: ${client.id}`);
       
-      // РџРѕР»СѓС‡Р°РµРј РїР°СЂР°РјРµС‚СЂС‹ РёР· Р·Р°РїСЂРѕСЃР°
+      // Получаем параметры из запроса
       const { telegramId, gameId } = client.handshake.query;
       
       if (!telegramId || !gameId) {
-        console.warn(`РЎРѕРµРґРёРЅРµРЅРёРµ Р±РµР· РЅРµРѕР±С…РѕРґРёРјС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ: ${client.id}, РїР°СЂР°РјРµС‚СЂС‹:`, client.handshake.query);
+        console.warn(`Соединение без необходимых параметров: ${client.id}, параметры:`, client.handshake.query);
         return;
       }
       
-      // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ telegramId СЏРІР»СЏРµС‚СЃСЏ СЃС‚СЂРѕРєРѕР№/С‡РёСЃР»РѕРј
+      // Проверяем, что telegramId является строкой/числом
       const userTelegramId = typeof telegramId === 'string' 
         ? telegramId 
         : Array.isArray(telegramId) ? telegramId[0] : null;
       
       if (!userTelegramId) {
-        console.error(`РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚ telegramId:`, telegramId);
+        console.error(`Некорректный формат telegramId:`, telegramId);
         return;
       }
       
-      // РџСЂРµРѕР±СЂР°Р·СѓРµРј gameId РІ СЃС‚СЂРѕРєСѓ
+      // Преобразуем gameId в строку
       const gameIdStr = typeof gameId === 'string' 
         ? gameId 
         : Array.isArray(gameId) ? gameId[0] : null;
       
       if (!gameIdStr) {
-        console.error(`РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚ gameId:`, gameId);
+        console.error(`Некорректный формат gameId:`, gameId);
         return;
       }
       
-      console.log(`РђСѓС‚РµРЅС‚РёС„РёС†РёСЂРѕРІР°РЅРЅС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ: ${userTelegramId}`);
+      console.log(`Аутентифицированный пользователь: ${userTelegramId}`);
       
-      // РЎРѕС…СЂР°РЅСЏРµРј РґР°РЅРЅС‹Рµ СЃРѕРµРґРёРЅРµРЅРёСЏ
+      // Сохраняем данные соединения
       client.data = { 
         ...client.data,
         user: { telegramId: userTelegramId },
         gameId: gameIdStr
       };
       
-      // РћР±РЅРѕРІР»СЏРµРј СЃС‚Р°С‚СѓСЃ РїРѕРґРєР»СЋС‡РµРЅРёСЏ РґР»СЏ РёРіСЂС‹
+      // Обновляем статус подключения для игры
       this.updateConnectionStatus(gameIdStr);
     } catch (error) {
-      console.error('РћС€РёР±РєР° РїСЂРё РѕР±СЂР°Р±РѕС‚РєРµ РЅРѕРІРѕРіРѕ СЃРѕРµРґРёРЅРµРЅРёСЏ:', error);
+      console.error('Ошибка при обработке нового соединения:', error);
     }
   }
 
-  // РћР±СЂР°Р±РѕС‚С‡РёРє РѕС‚РєР»СЋС‡РµРЅРёСЏ РєР»РёРµРЅС‚Р°
+  // Обработчик отключения клиента
   handleDisconnect(client: Socket) {
     try {
-      console.log(`WebSocket СЃРѕРµРґРёРЅРµРЅРёРµ Р·Р°РєСЂС‹С‚Рѕ: ${client.id}`);
+      console.log(`WebSocket соединение закрыто: ${client.id}`);
       
-      // РџРѕР»СѓС‡Р°РµРј gameId РёР· РґР°РЅРЅС‹С… РєР»РёРµРЅС‚Р°
+      // Получаем gameId из данных клиента
       const gameId = client.data?.gameId;
       
       if (!gameId) {
-        console.log(`РЎРѕРµРґРёРЅРµРЅРёРµ Р±РµР· gameId Р·Р°РєСЂС‹С‚Рѕ: ${client.id}`);
+        console.log(`Соединение без gameId закрыто: ${client.id}`);
         return;
       }
       
-      // РћР±РЅРѕРІР»СЏРµРј СЃС‚Р°С‚СѓСЃ РїРѕРґРєР»СЋС‡РµРЅРёСЏ
+      // Обновляем статус подключения
       this.updateConnectionStatus(gameId);
     } catch (error) {
-      console.error('РћС€РёР±РєР° РїСЂРё РѕР±СЂР°Р±РѕС‚РєРµ РѕС‚РєР»СЋС‡РµРЅРёСЏ:', error);
+      console.error('Ошибка при обработке отключения:', error);
     }
   }
 
-  // РњРµС‚РѕРґ РґР»СЏ РѕС‚РїСЂР°РІРєРё РѕР±РЅРѕРІР»РµРЅРёСЏ Рѕ СЃС‚Р°С‚СѓСЃРµ РїРѕРґРєР»СЋС‡РµРЅРёСЏ
+  // Метод для отправки обновления о статусе подключения
   private async updateConnectionStatus(gameId: string) {
     try {
-      // РџРѕР»СѓС‡Р°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ РєР»РёРµРЅС‚РѕРІ РІ РєРѕРјРЅР°С‚Рµ
+      // Получаем количество клиентов в комнате
       const room = await this.server.in(`game_${gameId}`).fetchSockets();
       const connectedClients = room.length;
       
-      console.log(`РћР±РЅРѕРІР»РµРЅРёРµ СЃС‚Р°С‚СѓСЃР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ РґР»СЏ РёРіСЂС‹ ${gameId}: ${connectedClients} Р°РєС‚РёРІРЅС‹С… РєР»РёРµРЅС‚РѕРІ`);
+      console.log(`Обновление статуса подключения для игры ${gameId}: ${connectedClients} активных клиентов`);
       
-      // РћС‚РїСЂР°РІР»СЏРµРј РІСЃРµРј РєР»РёРµРЅС‚Р°Рј РІ РєРѕРјРЅР°С‚Рµ РѕР±РЅРѕРІР»РµРЅРЅС‹Р№ СЃС‚Р°С‚СѓСЃ РїРѕРґРєР»СЋС‡РµРЅРёСЏ
+      // Отправляем всем клиентам в комнате обновленный статус подключения
       this.server.to(`game_${gameId}`).emit('connectionStatus', {
         gameId,
         connectedClients,
@@ -491,7 +491,7 @@ export class GameGateway {
       
       return connectedClients;
     } catch (error) {
-      console.error(`РћС€РёР±РєР° РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё СЃС‚Р°С‚СѓСЃР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ РґР»СЏ РёРіСЂС‹ ${gameId}:`, error);
+      console.error(`Ошибка при обновлении статуса подключения для игры ${gameId}:`, error);
       return 0;
     }
   }
