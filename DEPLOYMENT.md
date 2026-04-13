@@ -1,144 +1,242 @@
-# Руководство по деплою
+# Руководство по запуску и деплою
+
+Документ описывает практический порядок запуска и выкладки монорепозитория `game`. Архитектурное описание и карта компонентов находятся в `README.md`, а здесь собраны рабочие шаги для окружения, сборки, проверки и сопровождения.
+
+## Состав проекта
+
+- `packages/frontend` - Telegram Mini App на `Next.js`, порт `3000`
+- `packages/backend` - `NestJS` API, `socket.io`, Telegram-бот, порт `3005`
+- `packages/shared` - общие типы для frontend и backend
+
+## Переменные окружения
+
+### Backend
+
+Создайте файл `packages/backend/.env` на основе шаблона:
+
+```bash
+copy packages\backend\.env.example packages\backend\.env
+```
+
+Минимальный набор:
+
+```env
+NODE_ENV=development
+APP_NAME=Game
+MONGODB_URI=mongodb://localhost:27017/game
+BOT_TOKEN=replace_with_telegram_bot_token
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGINS=http://localhost:3000
+TELEGRAM_BOT_USERNAME=game_bot
+```
+
+### Frontend
+
+Создайте файл `packages/frontend/.env` на основе шаблона:
+
+```bash
+copy packages\frontend\.env.example packages\frontend\.env
+```
+
+Минимальный набор:
+
+```env
+NODE_ENV=development
+NEXT_PUBLIC_APP_NAME=Game
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3005
+NEXT_PUBLIC_BOT_USERNAME=game_bot
+```
+
+### Корневой `.env` для `docker-compose`
+
+Если вы запускаете сервисы через `docker-compose`, создайте корневой `.env`:
+
+```bash
+copy .env.example .env
+```
+
+Шаблон `./.env.example` содержит:
+
+- `BOT_TOKEN`
+- `MONGODB_URI`
+- `FRONTEND_URL`
+- `CORS_ORIGINS`
+- `TELEGRAM_BOT_USERNAME`
+- `NEXT_PUBLIC_APP_NAME`
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_BOT_USERNAME`
 
 ## Локальная разработка
 
 ### 1. Установка зависимостей
+
 ```bash
-# Установка зависимостей для frontend
-pnpm --filter frontend add @orbs-network/ton-access @ton/ton @tonconnect/ui-react
-
-# Если нужно установить зависимости для backend
-pnpm --filter backend add package-name
-
-# Если нужно установить зависимости для shared
-pnpm --filter shared add package-name
+pnpm install
 ```
 
-### 2. Сборка и запуск
+### 2. Сборка общего пакета
+
+Перед запуском backend и frontend соберите `shared`:
+
 ```bash
-# Если изменения только во frontend
-pnpm --filter frontend build
-pnpm --filter frontend dev
-
-# Если изменения в shared и frontend
-pnpm --filter shared build
-pnpm --filter frontend build
-
-# Полная сборка всех пакетов
-# Сначала собираем shared пакет
-pnpm --filter shared build
-
-# Затем собираем backend
-pnpm --filter backend build
-
-# И frontend
-pnpm --filter frontend build
-
-# Запуск в dev режиме
-# В первом терминале
-pnpm --filter backend dev
-
-# Во втором терминале
-pnpm --filter frontend dev
+pnpm --filter ./packages/shared build
 ```
 
-### 3. Чеклист проверки
-- [ ] Открыть http://localhost:3000
-- [ ] Проверить подключение кошелька
-- [ ] Протестировать депозит и вывод средств
-- [ ] Проверить консоль на ошибки
-- [ ] Проверить работу WebSocket соединения
+### 3. Запуск backend
 
-## Деплой
-
-### 1. Создание коммита
 ```bash
-# Проверка измененных файлов
-git status
-
-# Добавление изменений
-git add .
-
-# Создание коммита
-git commit -m "feat: add TON Connect and contract integration"
-
-# Пуш изменений
-git push origin main
+pnpm --filter ./packages/backend start:dev
 ```
 
-### 2. Проверка деплоя
-- [ ] Проверить статус сборки в GitHub Actions
-- [ ] После деплоя проверить https://test.timecommunity.xyz
-- [ ] Проверить подключение кошелька
-- [ ] Проверить работу с контрактом
-- [ ] Проверить WebSocket соединение
+### 4. Запуск frontend
 
-### 3. Мониторинг и отладка
+В отдельном терминале:
+
 ```bash
-# Проверка логов
+pnpm --filter ./packages/frontend dev
+```
+
+### 5. Полная сборка всего проекта
+
+```bash
+pnpm build
+```
+
+## Локальный чеклист
+
+- Открыть `http://localhost:3000`
+- Проверить, что backend отвечает на `http://localhost:3005/api`
+- Убедиться, что пользователь инициализируется через `users/init`
+- Проверить создание комнаты и подключение второго игрока
+- Проверить WebSocket-события для `dice`-игры
+- Проверить подключение TonConnect
+- Проверить отсутствие критических ошибок в консоли браузера и логах backend
+
+## Docker-сценарии
+
+В репозитории есть два варианта контейнеризации.
+
+### Вариант 1. Один образ из корня
+
+Корневой `Dockerfile` собирает весь монорепозиторий и запускает одновременно backend и frontend.
+
+```bash
+docker build -t ton-game-platform .
+docker run -p 3000:3000 -p 3005:3005 ton-game-platform
+```
+
+### Вариант 2. Раздельные сервисы через compose
+
+`docker-compose.yml` поднимает два сервиса: `frontend` и `backend`.
+
+```bash
+docker-compose up --build
+```
+
+Перед запуском compose убедитесь, что переменные окружения доступны Docker через shell или `.env` на уровне compose.
+
+## Прод-сборка и запуск
+
+### Сборка
+
+```bash
+pnpm build
+```
+
+### Запуск из корня монорепозитория
+
+```bash
+pnpm start
+```
+
+Команда использует корневой скрипт и запускает:
+
+- `pnpm --filter backend start:prod`
+- `pnpm --filter frontend start`
+
+## PM2
+
+Если приложение запускается без Docker, удобно использовать `PM2`.
+
+### Просмотр логов
+
+```bash
 pm2 logs backend
 pm2 logs frontend
+```
 
-# Перезапуск сервисов
+### Перезапуск
+
+```bash
 pm2 restart backend
 pm2 restart frontend
+```
 
-# Проверка статуса
+### Проверка состояния
+
+```bash
 pm2 status
 ```
 
-### 4. Откат изменений (если нужно)
+## Проверка после деплоя
+
+- Проверить доступность frontend-домена
+- Проверить ответы backend на `/api`
+- Проверить подключение Telegram Mini App
+- Проверить TonConnect manifest и подключение кошелька
+- Проверить создание комнаты и переход по deep-link `startapp=game_<id>`
+- Проверить подключение второго игрока и запуск `dice`-матча
+- Проверить выплату победителю и обновление баланса
+- Проверить логи backend, WebSocket и Telegram-бота
+
+## Обслуживание и диагностика
+
+### Полная пересборка
+
 ```bash
-# Отмена последнего коммита локально
-git reset --soft HEAD~1
-
-# Откат к конкретному коммиту
-git reset --hard <commit-hash>
-
-# Принудительный пуш
-git push -f origin main
-```
-
-## Полезные команды
-
-### Очистка и пересборка
-```bash
-# Очистка
-rm -rf packages/frontend/.next
-rm -rf packages/frontend/node_modules
-rm -rf node_modules
-rm -rf packages/*/dist
-
-# Установка зависимостей
-pnpm install
-
-# Полная пересборка
-pnpm --filter shared build && pnpm --filter backend build && pnpm --filter frontend build
+pnpm --filter ./packages/shared build
+pnpm --filter ./packages/backend build
+pnpm --filter ./packages/frontend build
 ```
 
 ### Проверка зависимостей
-```bash
-# Проверка устаревших пакетов
-pnpm outdated --recursive
 
-# Обновление пакетов
+```bash
+pnpm outdated --recursive
 pnpm update --recursive
 ```
 
-### Решение проблем
+### Если сломались workspace-зависимости
+
+Проверьте:
+
+- что пакет указан как `"workspace:*"` в зависимостях
+- что `pnpm-workspace.yaml` включает `packages/*`
+- что пакет `shared` был собран до запуска backend/frontend
+
+После этого повторите:
+
 ```bash
-# Ошибка импорта workspace пакетов
-# 1. Проверить наличие зависимости в package.json
-# "dependencies": {
-#   "@test-contract": "workspace:*"
-# }
-
-# 2. Проверить workspaces в корневом package.json
-# "workspaces": [
-#   "packages/*",
-#   "test-contract"
-# ]
-
-# 3. Пересобрать зависимости
 pnpm install
-``` 
+pnpm --filter ./packages/shared build
+```
+
+## Важные замечания
+
+- Backend не поднимется без корректного `MONGODB_URI`.
+- Telegram-бот не поднимется без `BOT_TOKEN`.
+- TonConnect manifest и nginx-конфиг в репозитории используют placeholder-домены и требуют замены на реальный домен перед production-деплоем.
+- Для локальной отладки multiplayer-режима важно, чтобы `NEXT_PUBLIC_API_URL` указывал на backend с WebSocket-доступом.
+- `TasksService.initDefaultTasks()` при старте пересоздает базовые задания, это нужно учитывать на production-среде.
+- Username Telegram-бота для deep-link задается через `TELEGRAM_BOT_USERNAME` и `NEXT_PUBLIC_BOT_USERNAME`.
+
+## Связанные файлы
+
+- `README.md` - архитектура, структура проекта и описание компонентов
+- `.env.example` - корневой шаблон для `docker-compose`
+- `packages/backend/.env.example` - шаблон окружения backend
+- `packages/frontend/.env.example` - шаблон окружения frontend
+- `Dockerfile` - сборка всего монорепозитория
+- `docker-compose.yml` - раздельный контейнерный запуск frontend и backend

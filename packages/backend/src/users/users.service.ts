@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserEntity, UserDocument, toUser } from '../schemas/user.schema';
-import { User } from '@test-app/shared';
+import { User } from '@game/shared';
 import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()

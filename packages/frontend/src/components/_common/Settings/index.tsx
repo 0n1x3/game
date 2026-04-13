@@ -8,6 +8,7 @@ import type { Language } from '@/types/i18n';
 import { UserData } from '@/types/user';
 import './style.css';
 import { AvatarSelector } from '../AvatarSelector';
+import { API_BASE_URL } from '@/config';
 
 export function Settings() {
   const { setShowSettings } = useModal();
@@ -23,7 +24,7 @@ export function Settings() {
 
         const initData = (webApp as any).initData;
         
-        const response = await fetch('https://test.timecommunity.xyz/api/users/init', {
+        const response = await fetch(`${API_BASE_URL}/users/init`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +73,7 @@ export function Settings() {
         avatarUrl
       });
 
-      const response = await fetch('https://test.timecommunity.xyz/api/users/update-avatar', {
+      const response = await fetch(`${API_BASE_URL}/users/update-avatar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

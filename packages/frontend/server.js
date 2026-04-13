@@ -7,13 +7,15 @@ const path = require('path');
 console.log('Starting server setup...');
 
 const dev = process.env.NODE_ENV !== 'production';
+const hostName = process.env.HOSTNAME || 'dev.game.local';
+const port = Number(process.env.PORT || 4000);
 console.log('Development mode:', dev);
 
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const certPath = path.join(__dirname, 'certificates/dev.timecommunity.xyz.pem');
-const keyPath = path.join(__dirname, 'certificates/dev.timecommunity.xyz-key.pem');
+const certPath = path.join(__dirname, `certificates/${hostName}.pem`);
+const keyPath = path.join(__dirname, `certificates/${hostName}-key.pem`);
 
 console.log('Certificate paths:');
 console.log('- Cert:', certPath);
@@ -84,13 +86,13 @@ try {
         console.error('Server error:', err);
       });
 
-      server.listen(4000, '0.0.0.0', (err) => {
+      server.listen(port, '0.0.0.0', (err) => {
         if (err) {
           console.error('Failed to start server:', err);
           process.exit(1);
         }
         console.log('Server started successfully');
-        console.log('> Ready on https://dev.timecommunity.xyz:4000');
+        console.log(`> Ready on https://${hostName}:${port}`);
       });
     })
     .catch((err) => {

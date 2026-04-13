@@ -1,5 +1,5 @@
 {
-  "name": "@test-app/backend",
+  "name": "@game/backend",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -19,7 +19,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-socket.io": "^10.0.0",
     "@nestjs/websockets": "^10.0.0",
-    "@test-app/shared": "workspace:*",
+    "@game/shared": "workspace:*",
     "@tma.js/init-data-node": "^1.4.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.0.0",

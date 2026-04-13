@@ -5,30 +5,38 @@ services:
     build:
       context: ./packages/backend
       dockerfile: Dockerfile
-    container_name: test-app-backend
+    container_name: game-backend
     ports:
       - "3005:3005"
     environment:
       NODE_ENV: production
+      APP_NAME: ${APP_NAME}
       BOT_TOKEN: ${BOT_TOKEN}
+      MONGODB_URI: ${MONGODB_URI}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
     depends_on:
       - frontend
     networks:
-      - test-app-network
+      - game-network
 
   frontend:
     build:
       context: ./packages/frontend
       dockerfile: Dockerfile
-    container_name: test-app-frontend
+    container_name: game-frontend
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:3005/api
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_BOT_USERNAME: ${NEXT_PUBLIC_BOT_USERNAME}
     networks:
-      - test-app-network
+      - game-network
 
 networks:
-  test-app-network:
+  game-network:
     driver: bridge 

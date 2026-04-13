@@ -1,4 +1,5 @@
 import { GameType, GameTransaction } from '@/types/game';
+import { API_BASE_URL } from '@/config';
 
 function getTelegramInitData(): { userId: number; initData: string } {
   const tg = window.Telegram?.WebApp;
@@ -25,7 +26,7 @@ function getTelegramInitData(): { userId: number; initData: string } {
 export async function createBet(amount: number, game: GameType): Promise<GameTransaction> {
   const { userId, initData } = getTelegramInitData();
 
-  const response = await fetch('https://test.timecommunity.xyz/api/transactions/bet', {
+  const response = await fetch(`${API_BASE_URL}/transactions/bet`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ export async function processGameResult(
 ): Promise<void> {
   const { userId, initData } = getTelegramInitData();
 
-  const response = await fetch('https://test.timecommunity.xyz/api/transactions/result', {
+  const response = await fetch(`${API_BASE_URL}/transactions/result`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',

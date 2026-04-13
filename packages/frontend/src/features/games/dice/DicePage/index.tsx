@@ -16,6 +16,7 @@ import { toast } from 'react-hot-toast';
 import { MultiplayerDiceGame } from '../components/MultiplayerDiceGame';
 import { ErrorBoundary } from '@/components/_shared/ErrorBoundary';
 import { GameSetup } from '../components/GameSetup';
+import { API_BASE_URL } from '@/config';
 
 type GameMode = 'bot' | 'player';
 type GameState = 'setup' | 'lobby' | 'playing';
@@ -138,7 +139,7 @@ export function DicePage() {
       
       console.log(`Отправка запроса на присоединение к игре: ${gameId}`);
       
-      const response = await fetch('https://test.timecommunity.xyz/api/games/join', {
+      const response = await fetch(`${API_BASE_URL}/games/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

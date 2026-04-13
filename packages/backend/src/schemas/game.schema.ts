@@ -2,6 +2,7 @@ import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 import mongoose from 'mongoose';
 import { UserDocument } from './user.schema';
+import { createTelegramGameLink } from '../config/runtime';
 
 @Schema()
 export class Lobby extends Document {
@@ -64,7 +65,7 @@ export class Game extends Document {
     type: String,
     required: true,
     default: function() {
-      return `https://t.me/neometria_bot?startapp=game_${this._id}`;
+      return createTelegramGameLink(this._id.toString());
     }
   })
   inviteLink: string;

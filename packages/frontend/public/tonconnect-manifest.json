@@ -1,7 +1,7 @@
 {
   "url": "http://localhost:3000",
-  "name": "Test App",
-  "iconUrl": "http://localhost:3000/icon.png",
+  "name": "Game",
+  "iconUrl": "http://localhost:3000/ton.png",
   "termsOfUseUrl": "http://localhost:3000/terms",
   "privacyPolicyUrl": "http://localhost:3000/privacy",
   "manifestVersion": "0.1"

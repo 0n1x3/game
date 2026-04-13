@@ -3,20 +3,17 @@
 import { TonConnectUIProvider, THEME } from '@tonconnect/ui-react';
 import type { UIWallet } from '@tonconnect/ui-react';
 import { useState, useEffect } from 'react';
+import { APP_URL } from '@/config';
 
 export function TonProvider({ children }: { children: React.ReactNode }) {
   const [manifestUrl, setManifestUrl] = useState<string>('');
 
   useEffect(() => {
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? 'https://test.timecommunity.xyz'
-      : 'https://dev.timecommunity.xyz:4000';
-    
     const manifestFile = process.env.NODE_ENV === 'production'
       ? 'tonconnect-manifest.prod.json'
       : 'tonconnect-manifest.dev.json';
     
-    setManifestUrl(`${baseUrl}/${manifestFile}`);
+    setManifestUrl(`${APP_URL}/${manifestFile}`);
   }, []);
 
   useEffect(() => {
@@ -70,9 +67,7 @@ export function TonProvider({ children }: { children: React.ReactNode }) {
     <TonConnectUIProvider 
       manifestUrl={manifestUrl}
       actionsConfiguration={{
-        twaReturnUrl: process.env.NODE_ENV === 'production' 
-          ? 'https://test.timecommunity.xyz'
-          : 'https://dev.timecommunity.xyz:4000',
+        twaReturnUrl: APP_URL,
         skipRedirectToWallet: 'never'
       }}
       walletsListConfiguration={{

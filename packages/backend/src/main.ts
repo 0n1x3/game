@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { TasksService } from './tasks/tasks.service';
+import { getAllowedOrigins } from './config/runtime';
 
 async function bootstrap() {
   try {
@@ -13,7 +14,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     
     app.enableCors({
-      origin: ['https://test.timecommunity.xyz', 'http://localhost:3000'],
+      origin: getAllowedOrigins(),
       methods: ['GET', 'POST'],
       credentials: true,
     });

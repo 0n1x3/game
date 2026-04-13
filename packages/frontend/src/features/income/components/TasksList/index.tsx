@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react';
 import { useTranslation } from '@/providers/i18n';
 import type { Task } from '../../../../types';
 import { useUserStore } from '@/store/useUserStore';
+import { API_BASE_URL } from '@/config';
 import './style.css';
 
 export function TasksList() {
@@ -24,8 +25,8 @@ export function TasksList() {
         const method = activeTab === 'active' ? 'POST' : 'GET';
 
         const url = method === 'GET' 
-          ? `https://test.timecommunity.xyz/api/tasks/${endpoint}?initData=${encodeURIComponent(initData)}`
-          : `https://test.timecommunity.xyz/api/tasks/${endpoint}`;
+          ? `${API_BASE_URL}/tasks/${endpoint}?initData=${encodeURIComponent(initData)}`
+          : `${API_BASE_URL}/tasks/${endpoint}`;
 
         const response = await fetch(url, {
           method,
@@ -65,7 +66,7 @@ export function TasksList() {
 
       const user = JSON.parse(decodeURIComponent(userStr));
       
-      const response = await fetch('https://test.timecommunity.xyz/api/tasks/complete', {
+      const response = await fetch(`${API_BASE_URL}/tasks/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ export function TasksList() {
         });
 
         // Обновляем список задач
-        const tasksResponse = await fetch(`https://test.timecommunity.xyz/api/tasks/${activeTab}`, {
+        const tasksResponse = await fetch(`${API_BASE_URL}/tasks/${activeTab}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

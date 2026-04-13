@@ -1,7 +1,8 @@
 import { Controller, Post, Body, Get, Query, Headers, Param, NotFoundException, Delete } from '@nestjs/common';
 import { GameService } from './game.service';
-import { GameType } from '@test-app/shared';
+import { GameType } from '@game/shared';
 import { UsersService } from '../users/users.service';
+import { createTelegramGameLink } from '../config/runtime';
 
 @Controller('games')
 export class GameController {
@@ -23,7 +24,7 @@ export class GameController {
     initData: string;
   }) {
     try {
-      // Парсим данные пользователя из initData
+      // РџР°СЂСЃРёРј РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РёР· initData
       const params = new URLSearchParams(data.initData);
       const userStr = params.get('user');
       
@@ -42,7 +43,7 @@ export class GameController {
       return { 
         success: true,
         game,
-        inviteLink: `https://t.me/neometria_bot?startapp=game_${game._id}`
+        inviteLink: createTelegramGameLink(game._id.toString())
       };
     } catch (error) {
       console.error('Error creating game:', error);
@@ -53,43 +54,43 @@ export class GameController {
   @Post('join')
   async joinGame(@Body() data: { gameId: string; initData: string }) {
     try {
-      console.log('Получен запрос на присоединение к игре:', data.gameId);
+      console.log('РџРѕР»СѓС‡РµРЅ Р·Р°РїСЂРѕСЃ РЅР° РїСЂРёСЃРѕРµРґРёРЅРµРЅРёРµ Рє РёРіСЂРµ:', data.gameId);
       
-      // Парсим gameId из формата game_<id>
+      // РџР°СЂСЃРёРј gameId РёР· С„РѕСЂРјР°С‚Р° game_<id>
       const gameId = data.gameId.startsWith('game_') 
         ? data.gameId.substring(5) 
         : data.gameId;
       
-      console.log('Обработанный ID игры:', gameId);
+      console.log('РћР±СЂР°Р±РѕС‚Р°РЅРЅС‹Р№ ID РёРіСЂС‹:', gameId);
       
-      // Парсим данные пользователя
+      // РџР°СЂСЃРёРј РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
       const params = new URLSearchParams(data.initData);
       const userStr = params.get('user');
       
       if (!userStr) {
-        console.error('Данные пользователя не найдены в initData');
+        console.error('Р”Р°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РЅРµ РЅР°Р№РґРµРЅС‹ РІ initData');
         throw new Error('No user data found');
       }
 
       const userData = JSON.parse(decodeURIComponent(userStr));
-      console.log('Данные пользователя:', { id: userData.id, username: userData.username });
+      console.log('Р”Р°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ:', { id: userData.id, username: userData.username });
       
       const user = await this.usersService.findByTelegramId(userData.id);
       
       if (!user) {
-        console.error(`Пользователь с ID ${userData.id} не найден`);
+        console.error(`РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ ID ${userData.id} РЅРµ РЅР°Р№РґРµРЅ`);
         throw new NotFoundException('User not found');
       }
       
-      console.log(`Пользователь найден: ${user.username}, ID: ${user._id}`);
+      console.log(`РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅР°Р№РґРµРЅ: ${user.username}, ID: ${user._id}`);
 
-      // Присоединяем пользователя к игре
+      // РџСЂРёСЃРѕРµРґРёРЅСЏРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Рє РёРіСЂРµ
       const game = await this.gameService.joinGame(gameId, user);
-      console.log('Пользователь успешно присоединился к игре');
+      console.log('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓСЃРїРµС€РЅРѕ РїСЂРёСЃРѕРµРґРёРЅРёР»СЃСЏ Рє РёРіСЂРµ');
       
       return { success: true, game };
     } catch (error) {
-      console.error('Ошибка при присоединении к игре:', error);
+      console.error('РћС€РёР±РєР° РїСЂРё РїСЂРёСЃРѕРµРґРёРЅРµРЅРёРё Рє РёРіСЂРµ:', error);
       throw error;
     }
   }
@@ -114,16 +115,16 @@ export class GameController {
   @Get(':id')
   async getGameById(@Param('id') id: string) {
     try {
-      console.log(`Получен запрос на получение игры с ID: ${id}`);
+      console.log(`РџРѕР»СѓС‡РµРЅ Р·Р°РїСЂРѕСЃ РЅР° РїРѕР»СѓС‡РµРЅРёРµ РёРіСЂС‹ СЃ ID: ${id}`);
       const game = await this.gameService.getGameById(id);
       
       if (!game) {
-        throw new NotFoundException('Игра не найдена');
+        throw new NotFoundException('РРіСЂР° РЅРµ РЅР°Р№РґРµРЅР°');
       }
       
       return { success: true, game };
     } catch (error) {
-      console.error('Ошибка при получении игры:', error);
+      console.error('РћС€РёР±РєР° РїСЂРё РїРѕР»СѓС‡РµРЅРёРё РёРіСЂС‹:', error);
       throw error;
     }
   }
@@ -131,9 +132,9 @@ export class GameController {
   @Post('start')
   async startGame(@Body() data: { gameId: string; initData: string }) {
     try {
-      console.log(`Получен запрос на старт игры с ID: ${data.gameId}`);
+      console.log(`РџРѕР»СѓС‡РµРЅ Р·Р°РїСЂРѕСЃ РЅР° СЃС‚Р°СЂС‚ РёРіСЂС‹ СЃ ID: ${data.gameId}`);
       
-      // Парсим данные пользователя из initData
+      // РџР°СЂСЃРёРј РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РёР· initData
       const params = new URLSearchParams(data.initData);
       const userStr = params.get('user');
       
@@ -148,7 +149,7 @@ export class GameController {
         throw new NotFoundException('User not found');
       }
       
-      // Проверяем, есть ли у пользователя права на старт игры (он должен быть игроком)
+      // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїСЂР°РІР° РЅР° СЃС‚Р°СЂС‚ РёРіСЂС‹ (РѕРЅ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РёРіСЂРѕРєРѕРј)
       const game = await this.gameService.getGameById(data.gameId);
       
       if (!game) {
@@ -163,12 +164,12 @@ export class GameController {
         throw new Error('User is not a player in this game');
       }
       
-      // Запускаем игру
+      // Р—Р°РїСѓСЃРєР°РµРј РёРіСЂСѓ
       const startedGame = await this.gameService.startDiceGame(data.gameId);
       
       return { success: true, game: startedGame };
     } catch (error) {
-      console.error('Ошибка при старте игры:', error);
+      console.error('РћС€РёР±РєР° РїСЂРё СЃС‚Р°СЂС‚Рµ РёРіСЂС‹:', error);
       throw error;
     }
   }
@@ -179,9 +180,9 @@ export class GameController {
     @Body() data: { initData: string }
   ) {
     try {
-      console.log(`Получен запрос на удаление игры с ID: ${id}`);
+      console.log(`РџРѕР»СѓС‡РµРЅ Р·Р°РїСЂРѕСЃ РЅР° СѓРґР°Р»РµРЅРёРµ РёРіСЂС‹ СЃ ID: ${id}`);
       
-      // Парсим данные пользователя из initData
+      // РџР°СЂСЃРёРј РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РёР· initData
       const params = new URLSearchParams(data.initData);
       const userStr = params.get('user');
       
@@ -196,12 +197,12 @@ export class GameController {
         throw new NotFoundException('User not found');
       }
       
-      // Удаляем игру
+      // РЈРґР°Р»СЏРµРј РёРіСЂСѓ
       const result = await this.gameService.deleteGame(id, userData.id);
       
       return { success: result };
     } catch (error) {
-      console.error('Ошибка при удалении игры:', error);
+      console.error('РћС€РёР±РєР° РїСЂРё СѓРґР°Р»РµРЅРёРё РёРіСЂС‹:', error);
       throw error;
     }
   }

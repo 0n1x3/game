@@ -3,12 +3,10 @@ const path = require('path');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@test-app/shared', '@tonconnect/ui-react'],
+  transpilePackages: ['@game/shared', '@tonconnect/ui-react'],
   output: 'standalone',
   env: {
-    NEXT_PUBLIC_APP_URL: process.env.NODE_ENV === 'production' 
-      ? 'https://test.timecommunity.xyz' 
-      : 'https://dev.timecommunity.xyz:4000'
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   },
   webpack: (config) => {
     config.resolve.fallback = {

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { User, BaseUser } from '@test-app/shared';
+import { User, BaseUser } from '@game/shared';
 
 @Schema({
   collection: 'users',
@@ -49,12 +49,12 @@ export class UserEntity implements BaseUser {
 export type UserDocument = UserEntity & Document;
 export const UserSchema = SchemaFactory.createForClass(UserEntity);
 
-// Добавляем виртуальное поле id
+// Р”РѕР±Р°РІР»СЏРµРј РІРёСЂС‚СѓР°Р»СЊРЅРѕРµ РїРѕР»Рµ id
 UserSchema.virtual('id').get(function() {
   return this._id.toHexString();
 });
 
-// Функция для преобразования документа в User
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ РґРѕРєСѓРјРµРЅС‚Р° РІ User
 export function toUser(doc: UserDocument): User {
   const obj = doc.toObject();
   return {

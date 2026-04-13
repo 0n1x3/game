@@ -13,7 +13,7 @@ import { getTelegramData } from '@/utils/telegramWebApp';
 import { BottomNav } from '@/components/_layout/BottomNav';
 import { useTranslation } from '@/providers/i18n';
 import './style.css';
-import io from 'socket.io-client';
+import { API_BASE_URL } from '@/config';
 
 // Определим интерфейс для данных игры
 interface GameData {
@@ -56,7 +56,7 @@ export default function GamePage() {
       const timestamp = Date.now();
       const fullId = id.includes('?') ? `${id}&_=${timestamp}` : `${id}?_=${timestamp}`;
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://test.timecommunity.xyz'}/api/games/${fullId}`, {
+      const response = await fetch(`${API_BASE_URL}/games/${fullId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export default function GamePage() {
         return false;
       }
       
-      const response = await fetch('https://test.timecommunity.xyz/api/games/join', {
+      const response = await fetch(`${API_BASE_URL}/games/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

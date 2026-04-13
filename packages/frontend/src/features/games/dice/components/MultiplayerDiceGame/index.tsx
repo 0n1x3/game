@@ -17,6 +17,7 @@ import {
   MAX_ROUNDS, 
   
 } from './gameConfig';
+import { API_BASE_URL, API_URL, TELEGRAM_BOT_URL, createTelegramGameLink } from '@/config';
 
 // Удаляем объявление глобального интерфейса, так как оно определено в global.d.ts
 
@@ -371,7 +372,7 @@ export function MultiplayerDiceGame({
       }
     
       console.log('Создание нового соединения с параметрами:', socketOptions);
-      const newSocket = io(`${process.env.NEXT_PUBLIC_API_URL || 'https://test.timecommunity.xyz'}`, socketOptions);
+      const newSocket = io(API_URL, socketOptions);
       
       socketRef.current = newSocket;
       connectionAttemptRef.current = 0;
@@ -1181,7 +1182,7 @@ export function MultiplayerDiceGame({
 
   // Функция для копирования пригласительной ссылки
   const copyInviteLink = () => {
-    const inviteLink = `https://t.me/neometria_bot?startapp=game_${gameId}`;
+    const inviteLink = createTelegramGameLink(gameId);
     console.log('Copying invite link:', inviteLink);
     
     if (navigator.clipboard) {
@@ -1229,7 +1230,7 @@ export function MultiplayerDiceGame({
     });
     
     // Формируем URL с дополнительным параметром для идентификации пользователя
-    const url = `https://t.me/neometria_bot?startapp=${fullGameId}`;
+    const url = `${TELEGRAM_BOT_URL}?startapp=${fullGameId}`;
     
     console.log(`Открываем URL для входа в игру: ${url}`);
     
@@ -1285,7 +1286,7 @@ export function MultiplayerDiceGame({
       setTelegramId(currentUserId);
       
       // Получаем данные пользователя
-      fetch(`https://test.timecommunity.xyz/api/users/${currentUserId}`)
+      fetch(`${API_BASE_URL}/users/${currentUserId}`)
         .then(response => response.json())
         .then(userData => {
           if (userData) {

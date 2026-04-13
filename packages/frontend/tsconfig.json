@@ -19,7 +19,7 @@
       }
     ],
     "paths": {
-      "@test-app/shared": ["../shared/src"],
+      "@game/shared": ["../shared/src"],
       "@/*": ["./src/*"]
     },
     "types": ["@twa-dev/types"]

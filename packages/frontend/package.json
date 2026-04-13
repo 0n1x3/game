@@ -1,9 +1,9 @@
 {
-  "name": "@test-app/frontend",
+  "name": "@game/frontend",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev -p 3000",
-    "dev:https": "NODE_ENV=development HTTPS=true PORT=4000 HOSTNAME=dev.timecommunity.xyz node server.js",
+    "dev:https": "NODE_ENV=development HTTPS=true PORT=4000 HOSTNAME=dev.game.local node server.js",
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint"
@@ -11,7 +11,7 @@
   "dependencies": {
     "@iconify/react": "^5.2.0",
     "@orbs-network/ton-access": "^2.3.3",
-    "@test-app/shared": "workspace:*",
+    "@game/shared": "workspace:*",
     "@ton/core": "^0.59.0",
     "@ton/crypto": "^3.3.0",
     "@ton/ton": "^15.1.0",

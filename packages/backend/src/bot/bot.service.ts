@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 @Injectable()
 export class BotService implements OnModuleInit {
   private bot: TelegramBot;
+  private readonly appName: string;
 
   constructor(private configService: ConfigService) {
     const token = this.configService.get<string>('BOT_TOKEN');
@@ -13,6 +14,8 @@ export class BotService implements OnModuleInit {
       console.error('BOT_TOKEN is not set in environment variables');
       throw new Error('BOT_TOKEN is required');
     }
+
+    this.appName = this.configService.get<string>('APP_NAME') || 'Game';
 
     console.log('Initializing bot with token:', {
       first10: token.substring(0, 10),
@@ -47,7 +50,7 @@ export class BotService implements OnModuleInit {
     // Перенесем логику из старого бота
     this.bot.onText(/\/start/, (msg) => {
       const chatId = msg.chat.id;
-      this.bot.sendMessage(chatId, 'Привет! Я тестовый бот. Что дальше?');
+      this.bot.sendMessage(chatId, `Привет! Я бот проекта ${this.appName}. Что дальше?`);
     });
 
     this.bot.on('message', (msg) => {

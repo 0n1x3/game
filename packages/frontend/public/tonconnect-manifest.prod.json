@@ -1,9 +1,9 @@
 {
-  "url": "https://test.timecommunity.xyz",
-  "name": "Test App",
-  "iconUrl": "https://test.timecommunity.xyz/icon.png",
-  "termsOfUseUrl": "https://test.timecommunity.xyz/terms",
-  "privacyPolicyUrl": "https://test.timecommunity.xyz/privacy",
+  "url": "https://game.example.com",
+  "name": "Game",
+  "iconUrl": "https://game.example.com/ton.png",
+  "termsOfUseUrl": "https://game.example.com/terms",
+  "privacyPolicyUrl": "https://game.example.com/privacy",
   "manifestVersion": 2,
   "permissions": ["tonAddress"]
 } 

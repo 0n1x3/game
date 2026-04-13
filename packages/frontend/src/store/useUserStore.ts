@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { UserData } from '@/types/user';
+import { API_BASE_URL } from '@/config';
 
 interface UserState {
   telegramId: number | null;
@@ -37,7 +38,7 @@ export const useUserStore = create<UserState>((set) => ({
       if (!webApp) return;
 
       const initData = (webApp as any).initData;
-      const response = await fetch('https://test.timecommunity.xyz/api/users/init', {
+      const response = await fetch(`${API_BASE_URL}/users/init`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData }),

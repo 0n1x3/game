@@ -1,13 +1,13 @@
 {
-  "url": "https://dev.timecommunity.xyz:4000",
-  "name": "Test App Dev",
-  "iconUrl": "https://dev.timecommunity.xyz:4000/ton.png",
-  "termsOfUseUrl": "https://dev.timecommunity.xyz:4000/terms",
-  "privacyPolicyUrl": "https://dev.timecommunity.xyz:4000/privacy",
+  "url": "https://dev.game.local:4000",
+  "name": "Game Dev",
+  "iconUrl": "https://dev.game.local:4000/ton.png",
+  "termsOfUseUrl": "https://dev.game.local:4000/terms",
+  "privacyPolicyUrl": "https://dev.game.local:4000/privacy",
   "manifestVersion": 2,
   "permissions": ["tonAddress"],
   "returnStrategy": "back",
   "platforms": ["ios", "android", "chrome", "firefox", "safari"],
-  "universalUrl": "https://dev.timecommunity.xyz:4000",
+  "universalUrl": "https://dev.game.local:4000",
   "bridgeUrl": "https://bridge.tonapi.io/bridge"
 } 

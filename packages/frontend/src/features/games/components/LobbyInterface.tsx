@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import './LobbyInterface.css';
 import { GameCard } from './GameCard';
 import { GameType } from '@/types/game';
+import { API_BASE_URL, createTelegramGameLink } from '@/config';
 // Тип TelegramWebApp теперь доступен глобально через Window.Telegram
 
 interface Game {
@@ -57,7 +58,7 @@ export function LobbyInterface({
   const fetchGames = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`https://test.timecommunity.xyz/api/games/active?type=${gameType}`);
+      const response = await fetch(`${API_BASE_URL}/games/active?type=${gameType}`);
       if (!response.ok) {
         throw new Error('Failed to fetch games');
       }
@@ -81,7 +82,7 @@ export function LobbyInterface({
       if (!tg?.initData) return;
       setLoading(true);
 
-      const response = await fetch('https://test.timecommunity.xyz/api/games/create', {
+      const response = await fetch(`${API_BASE_URL}/games/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +124,7 @@ export function LobbyInterface({
       if (!tg?.initData) return;
       setLoading(true);
 
-      const response = await fetch(`https://test.timecommunity.xyz/api/games/${gameId}`, {
+      const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +220,7 @@ export function LobbyInterface({
 
   const copyGameLink = (gameId: string) => {
     try {
-      const link = `https://t.me/neometria_bot?startapp=game_${gameId}`;
+      const link = createTelegramGameLink(gameId);
       navigator.clipboard.writeText(link);
       
       setTimeout(() => {
