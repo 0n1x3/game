@@ -13,6 +13,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: SSH Check
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          debug: true
+          port: 22
+          script_stop: true
+          timeout: 30s
+          command_timeout: 2m
+          script: |
+            set -e
+            echo "SSH authentication succeeded"
+            whoami
+            hostname
+            mkdir -p /root/game
+            ls -ld /root /root/game
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -65,41 +84,48 @@ jobs:
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          username: root
           key: ${{ secrets.SERVER_SSH_KEY }}
           debug: true
           port: 22
+          timeout: 30s
+          command_timeout: 10m
           script_stop: true
           script: |
+            set -e
             whoami
-            echo "Testing connection"
-            mkdir -p /home/rdp-user/game
-            cd /home/rdp-user/game || exit 1
+            echo "Starting deploy"
+            mkdir -p /root/game
+            cd /root/game || exit 1
             pwd
             ls -la
-            
-            # Создаем docker-compose.yml
-            echo 'version: "3"' > docker-compose.yml
-            echo '' >> docker-compose.yml
-            echo 'services:' >> docker-compose.yml
-            echo '  backend:' >> docker-compose.yml
-            echo '    image: 0n1x3/game-backend:latest' >> docker-compose.yml
-            echo '    restart: always' >> docker-compose.yml
-            echo '    ports:' >> docker-compose.yml
-            echo '      - "3005:3005"' >> docker-compose.yml
-            echo '    environment:' >> docker-compose.yml
-            echo '      - MONGODB_URI=${{ secrets.MONGODB_URI }}' >> docker-compose.yml
-            echo '      - BOT_TOKEN=${{ secrets.BOT_TOKEN }}' >> docker-compose.yml
-            echo '' >> docker-compose.yml
-            echo '  frontend:' >> docker-compose.yml
-            echo '    image: 0n1x3/game-frontend:latest' >> docker-compose.yml
-            echo '    restart: always' >> docker-compose.yml
-            echo '    ports:' >> docker-compose.yml
-            echo '      - "3000:3000"' >> docker-compose.yml
-            
-            # Проверяем содержимое
+
+            cat > docker-compose.yml <<'EOF'
+            version: "3"
+
+            services:
+              backend:
+                image: 0n1x3/game-backend:latest
+                restart: always
+                ports:
+                  - "3005:3005"
+                environment:
+                  - MONGODB_URI=${{ secrets.MONGODB_URI }}
+                  - BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+
+              frontend:
+                image: 0n1x3/game-frontend:latest
+                restart: always
+                ports:
+                  - "3000:3000"
+            EOF
+
             cat docker-compose.yml
-            
-            # Запускаем контейнеры
-            docker-compose pull
-            docker-compose up -d
+
+            if command -v docker-compose >/dev/null 2>&1; then
+              docker-compose pull
+              docker-compose up -d
+            else
+              docker compose pull
+              docker compose up -d
+            fi

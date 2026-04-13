@@ -145,6 +145,22 @@ docker-compose up --build
 pnpm build
 ```
 
+### GitHub Actions деплой
+
+Текущий workflow деплоит приложение по SSH:
+
+- пользователь: `root`
+- директория на сервере: `/root/game`
+- обязательные GitHub Secrets:
+  - `SERVER_HOST`
+  - `SERVER_SSH_KEY`
+  - `DOCKER_USERNAME`
+  - `DOCKER_PASSWORD`
+  - `MONGODB_URI`
+  - `BOT_TOKEN`
+
+Перед основным деплоем workflow выполняет отдельный SSH-check шаг, чтобы ошибки ключа и доступа падали раньше сборки/перезапуска контейнеров.
+
 ### Запуск из корня монорепозитория
 
 ```bash
